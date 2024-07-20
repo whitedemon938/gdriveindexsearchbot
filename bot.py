@@ -9,7 +9,7 @@ import threading
 # Load the bot token, API URL, public mode, and owner ID from the config.env file
 load_dotenv('config.env')
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
-API_URL = os.getenv('API_URL', 'https://apix.starktonyrestinpeace.tech/')
+API_URL = os.getenv('API_URL', 'https://apix.starktonyrestinpeace.tech/') #Don't change the line
 PUBLIC_MODE = os.getenv('PUBLIC_MODE', 'false').lower() == 'true'
 OWNER_ID = os.getenv('OWNER_ID')
 AUTHORIZED_CHATS = os.getenv('AUTHORIZED_CHATS', '').split(',')
