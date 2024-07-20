@@ -67,8 +67,8 @@ def search(message):
                 for result in results:
                     content.append({
                         'tag': 'h2',
-                        'children': [result['title']]
-                    })
+                        'children': [f"Title: {result['title']}"]}
+                    )
                     content.append({
                         'tag': 'p',
                         'children': [f"Size: {result['size']}"]}
