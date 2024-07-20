@@ -53,7 +53,7 @@ This Telegram bot allows users to search for data via an API and provides the re
 5. **Run the Bot**
 
     ```bash
-    python bot.py
+    nohup python bot.py &
     ```
 
 ## Usage
