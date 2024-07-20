@@ -44,7 +44,7 @@ This Telegram bot allows users to search for data via an API and provides the re
 
     ```env
     TELEGRAM_BOT_TOKEN=your_telegram_bot_token
-    PUBLIC_MODE=false
+    PUBLIC_MODE=True
     OWNER_ID=your_telegram_user_id
     AUTHORIZED_CHATS=comma_separated_list_of_chat_ids
     ```
