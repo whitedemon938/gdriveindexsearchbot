@@ -1,18 +1,21 @@
 import os
-import requests
-import telebot
+import aiohttp
+import asyncio
 from dotenv import load_dotenv
-from telegraph import Telegraph
+from pyrogram import Client, filters
+from pyrogram.types import Message
 import logging
-import threading
+from telegraph.aio import Telegraph
 
 # Load the bot token, API URL, public mode, owner ID, and message deletion time from the config.env file
 load_dotenv('config.env')
+API_ID = int(os.getenv('API_ID'))
+API_HASH = os.getenv('API_HASH')
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 API_URL = os.getenv('API_URL', 'https://apix.starktonyrestinpeace.tech/')
 PUBLIC_MODE = os.getenv('PUBLIC_MODE', 'false').lower() == 'true'
-OWNER_ID = os.getenv('OWNER_ID')
-AUTHORIZED_CHATS = os.getenv('AUTHORIZED_CHATS', '').split(',')
+OWNER_ID = int(os.getenv('OWNER_ID'))
+AUTHORIZED_CHATS = list(map(int, os.getenv('AUTHORIZED_CHATS', '').split(',')))
 MESSAGE_DELETION_TIME = int(os.getenv('MESSAGE_DELETION_TIME', '10'))  # Default to 10 seconds
 
 if not TOKEN:
@@ -23,16 +26,18 @@ if not OWNER_ID:
     raise ValueError("No OWNER_ID provided")
 
 # Initialize the bot and Telegraph
-bot = telebot.TeleBot(TOKEN)
+app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=TOKEN)
 telegraph = Telegraph()
-telegraph.create_account(short_name='BotSharer', author_name='YourBotName', author_url='https://t.me/your_bot_username')
+
+async def init_telegraph():
+    await telegraph.create_account(short_name='BotSharer', author_name='YourBotName', author_url='https://t.me/your_bot_username')
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 
 def is_authorized(chat_id):
     """Check if the chat is authorized."""
-    return str(chat_id) in AUTHORIZED_CHATS or str(chat_id) == OWNER_ID
+    return chat_id in AUTHORIZED_CHATS or chat_id == OWNER_ID
 
 def should_respond(chat_id):
     """Determine if the bot should respond based on the mode."""
@@ -40,82 +45,74 @@ def should_respond(chat_id):
         return True
     return is_authorized(chat_id)
 
-@bot.message_handler(commands=['start'])
-def start(message):
+@app.on_message(filters.command("start"))
+async def start(client: Client, message: Message):
     if should_respond(message.chat.id):
-        bot.reply_to(message, 'Hi! Send me a movies / series name and I will find results for you.')
+        await message.reply_text('Hi! Send me a movies / series name and I will find results for you.')
     else:
-        bot.reply_to(message, 'You are not authorized to use this bot.')
+        await message.reply_text('You are not authorized to use this bot.')
 
-@bot.message_handler(func=lambda message: True)
-def search(message):
+@app.on_message(filters.text)
+async def search(client: Client, message: Message):
     if should_respond(message.chat.id):
         search_term = message.text
-        try:
-            # Send an instant response indicating the search is in progress
-            searching_message = bot.reply_to(message, f'Searching for "{search_term}"...')
-            
-            response = requests.get(f'{API_URL}?search={requests.utils.quote(search_term)}')
-            response.raise_for_status()
-            results = response.json()
+        async with aiohttp.ClientSession() as session:
+            try:
+                # Send an instant response indicating the search is in progress
+                searching_message = await message.reply_text(f'Searching for "{search_term}"...')
+                
+                async with session.get(f'{API_URL}?search={aiohttp.helpers.quote(search_term)}') as response:
+                    response.raise_for_status()
+                    results = await response.json()
 
-            if not results:
-                bot.edit_message_text('No results found.', chat_id=searching_message.chat.id, message_id=searching_message.message_id)
-            else:
-                # Build the content for the Telegraph page
-                content = []
-                for result in results:
-                    content.append({
-                        'tag': 'h2',
-                        'children': [f"Title: {result['title']}"]}
+                if not results:
+                    await searching_message.edit_text('No results found.')
+                else:
+                    # Build the content for the Telegraph page
+                    content = []
+                    for result in results:
+                        content.append({'tag': 'h2', 'children': [f"Title: {result['title']}"]})
+                        content.append({'tag': 'p', 'children': [f"Size: {result['size']}"]})
+                        content.append({'tag': 'a', 'attrs': {'href': result['link']}, 'children': ['Link']})
+                        content.append({'tag': 'hr'})
+
+                    # Create a new Telegraph page
+                    response = await telegraph.create_page(
+                        title='Search Results',
+                        content=content
                     )
-                    content.append({
-                        'tag': 'p',
-                        'children': [f"Size: {result['size']}"]}
-                    )
-                    content.append({
-                        'tag': 'a',
-                        'attrs': {'href': result['link']},
-                        'children': ['Link']
-                    })
-                    content.append({
-                        'tag': 'hr'
-                    })
+                    page_url = f"https://telegra.ph/{response['path']}"
 
-                # Create a new Telegraph page
-                response = telegraph.create_page(
-                    title='Search Results',
-                    content=content
-                )
-                page_url = f"https://telegra.ph/{response['path']}"
+                    # Edit the searching message with the results URL
+                    await searching_message.edit_text(f'Here are the results: {page_url}')
 
-                # Edit the searching message with the results URL
-                bot.edit_message_text(f'Here are the results: {page_url}', chat_id=searching_message.chat.id, message_id=searching_message.message_id)
+                    # Schedule the deletion of both the user's message and the bot's message after the specified time
+                    await asyncio.sleep(MESSAGE_DELETION_TIME)
+                    await delete_messages(message, searching_message)
 
-                # Schedule the deletion of both the user's message and the bot's message after the specified time
-                threading.Timer(MESSAGE_DELETION_TIME, lambda: delete_messages(message, searching_message)).start()
-
-        except requests.exceptions.HTTPError as e:
-            logging.error(f'HTTP error occurred: {e}')
-            bot.edit_message_text('There was a problem retrieving the search results. Please try again later.', chat_id=searching_message.chat.id, message_id=searching_message.message_id)
-        except requests.exceptions.ConnectionError as e:
-            logging.error(f'Connection error occurred: {e}')
-            bot.edit_message_text('There was a connection error. Please check your internet connection and try again.', chat_id=searching_message.chat.id, message_id=searching_message.message_id)
-        except requests.exceptions.Timeout as e:
-            logging.error(f'Timeout error occurred: {e}')
-            bot.edit_message_text('The request timed out. Please try again later.', chat_id=searching_message.chat.id, message_id=searching_message.message_id)
-        except requests.exceptions.RequestException as e:
-            logging.error(f'An error occurred: {e}')
-            bot.edit_message_text('An error occurred while fetching data from the API.', chat_id=searching_message.chat.id, message_id=searching_message.message_id)
+            except aiohttp.ClientResponseError as e:
+                logging.error(f'HTTP error occurred: {e}')
+                await searching_message.edit_text('There was a problem retrieving the search results. Please try again later.')
+            except aiohttp.ClientConnectorError as e:
+                logging.error(f'Connection error occurred: {e}')
+                await searching_message.edit_text('There was a connection error. Please check your internet connection and try again.')
+            except asyncio.TimeoutError as e:
+                logging.error(f'Timeout error occurred: {e}')
+                await searching_message.edit_text('The request timed out. Please try again later.')
+            except Exception as e:
+                logging.error(f'An error occurred: {e}')
+                await searching_message.edit_text('An error occurred while fetching data from the API.')
     else:
-        bot.reply_to(message, 'You are not authorized to use this bot.')
+        await message.reply_text('You are not authorized to use this bot.')
 
-def delete_messages(user_message, bot_message):
+async def delete_messages(user_message: Message, bot_message: Message):
     try:
-        bot.delete_message(user_message.chat.id, user_message.message_id)
-        bot.delete_message(bot_message.chat.id, bot_message.message_id)
-    except telebot.apihelper.ApiException as e:
+        await user_message.delete()
+        await bot_message.delete()
+    except Exception as e:
         logging.error(f'Error deleting message: {e}')
 
 if __name__ == '__main__':
-    bot.polling()
+    app.start()
+    asyncio.run(init_telegraph())
+    app.idle()

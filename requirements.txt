@@ -1,4 +1,5 @@
-pyTelegramBotAPI
-requests
+aiohttp
+pyrofork
+tgcrypto
 telegraph
 python-dotenv
