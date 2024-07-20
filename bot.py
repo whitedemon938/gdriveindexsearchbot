@@ -118,6 +118,7 @@ if __name__ == '__main__':
     async def main():
         await app.start()
         await init_telegraph()
-        await app.idle()
+        print('Bot Started')
+        await asyncio.Event().wait()  # Keep the event loop running indefinitely
 
     asyncio.run(main())
