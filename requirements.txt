@@ -1,4 +1,4 @@
+aiohttp
 pyTelegramBotAPI
-requests
 telegraph
 python-dotenv
