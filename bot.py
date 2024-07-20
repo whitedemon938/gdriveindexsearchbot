@@ -16,10 +16,7 @@ API_URL = os.getenv('API_URL', 'https://apix.starktonyrestinpeace.tech/')
 PUBLIC_MODE = os.getenv('PUBLIC_MODE', 'false').lower() == 'true'
 OWNER_ID = int(os.getenv('OWNER_ID'))
 AUTHORIZED_CHATS_str = os.getenv('AUTHORIZED_CHATS', '')
-if AUTHORIZED_CHATS_str:
-    AUTHORIZED_CHATS = list(map(int, AUTHORIZED_CHATS_str.split(',')))
-else:
-    AUTHORIZED_CHATS = []
+AUTHORIZED_CHATS = list(map(int, AUTHORIZED_CHATS_str.split(','))) if AUTHORIZED_CHATS_str else []
 MESSAGE_DELETION_TIME = int(os.getenv('MESSAGE_DELETION_TIME', '10'))  # Default to 10 seconds
 
 if not TOKEN:
@@ -34,7 +31,10 @@ app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=TOKEN)
 telegraph = Telegraph()
 
 async def init_telegraph():
-    await telegraph.create_account(short_name='BotSharer', author_name='YourBotName', author_url='https://t.me/your_bot_username')
+    try:
+        await telegraph.create_account(short_name='BotSharer', author_name='YourBotName', author_url='https://t.me/your_bot_username')
+    except Exception as e:
+        logging.error(f'Error initializing Telegraph: {e}')
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -45,14 +45,12 @@ def is_authorized(chat_id):
 
 def should_respond(chat_id):
     """Determine if the bot should respond based on the mode."""
-    if PUBLIC_MODE:
-        return True
-    return is_authorized(chat_id)
+    return PUBLIC_MODE or is_authorized(chat_id)
 
 @app.on_message(filters.command("start"))
 async def start(client: Client, message: Message):
     if should_respond(message.chat.id):
-        await message.reply_text('Hi! Send me a movies / series name and I will find results for you.')
+        await message.reply_text('Hi! Send me a movie or series name and I will find results for you.')
     else:
         await message.reply_text('You are not authorized to use this bot.')
 
