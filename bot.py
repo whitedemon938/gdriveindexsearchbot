@@ -6,13 +6,14 @@ from telegraph import Telegraph
 import logging
 import threading
 
-# Load the bot token, API URL, public mode, and owner ID from the config.env file
+# Load the bot token, API URL, public mode, owner ID, and message deletion time from the config.env file
 load_dotenv('config.env')
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
-API_URL = os.getenv('API_URL', 'https://apix.starktonyrestinpeace.tech/') #Don't change the line
+API_URL = os.getenv('API_URL', 'https://apix.starktonyrestinpeace.tech/')
 PUBLIC_MODE = os.getenv('PUBLIC_MODE', 'false').lower() == 'true'
 OWNER_ID = os.getenv('OWNER_ID')
 AUTHORIZED_CHATS = os.getenv('AUTHORIZED_CHATS', '').split(',')
+MESSAGE_DELETION_TIME = int(os.getenv('MESSAGE_DELETION_TIME', '10'))  # Default to 10 seconds
 
 if not TOKEN:
     raise ValueError("No TELEGRAM_BOT_TOKEN provided")
@@ -91,8 +92,8 @@ def search(message):
                 # Edit the searching message with the results URL
                 bot.edit_message_text(f'Here are the results: {page_url}', chat_id=searching_message.chat.id, message_id=searching_message.message_id)
 
-                # Schedule the deletion of both the user's message and the bot's message after 10 seconds
-                threading.Timer(10, lambda: delete_messages(message, searching_message)).start()
+                # Schedule the deletion of both the user's message and the bot's message after the specified time
+                threading.Timer(MESSAGE_DELETION_TIME, lambda: delete_messages(message, searching_message)).start()
 
         except requests.exceptions.HTTPError as e:
             logging.error(f'HTTP error occurred: {e}')
@@ -118,4 +119,3 @@ def delete_messages(user_message, bot_message):
 
 if __name__ == '__main__':
     bot.polling()
-
