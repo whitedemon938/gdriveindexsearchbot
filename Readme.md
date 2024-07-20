@@ -61,6 +61,9 @@ This Telegram bot allows users to search for data via an API and provides the re
 - **Start Command**: Send `/start` to the bot to receive a welcome message.
 - **Search**: Send any text to the bot to initiate a search. The bot will respond with search results or an error message.
 
+- a sample bot [Gdrive Index Search Bot](https://t.me/gdriveindexsearch1bot).
+
+
 ## Logging
 
 Logs are available in the console. They include errors and other important messages.
