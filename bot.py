@@ -15,7 +15,11 @@ TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 API_URL = os.getenv('API_URL', 'https://apix.starktonyrestinpeace.tech/')
 PUBLIC_MODE = os.getenv('PUBLIC_MODE', 'false').lower() == 'true'
 OWNER_ID = int(os.getenv('OWNER_ID'))
-AUTHORIZED_CHATS = list(map(int, os.getenv('AUTHORIZED_CHATS', '').split(',')))
+AUTHORIZED_CHATS_str = os.getenv('AUTHORIZED_CHATS', '')
+if AUTHORIZED_CHATS_str:
+    AUTHORIZED_CHATS = list(map(int, AUTHORIZED_CHATS_str.split(',')))
+else:
+    AUTHORIZED_CHATS = []
 MESSAGE_DELETION_TIME = int(os.getenv('MESSAGE_DELETION_TIME', '10'))  # Default to 10 seconds
 
 if not TOKEN:
@@ -113,6 +117,9 @@ async def delete_messages(user_message: Message, bot_message: Message):
         logging.error(f'Error deleting message: {e}')
 
 if __name__ == '__main__':
-    app.start()
-    asyncio.run(init_telegraph())
-    app.idle()
+    async def main():
+        await app.start()
+        await init_telegraph()
+        await app.idle()
+
+    asyncio.run(main())
