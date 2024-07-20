@@ -42,7 +42,7 @@ def should_respond(chat_id):
 @bot.message_handler(commands=['start'])
 def start(message):
     if should_respond(message.chat.id):
-        bot.reply_to(message, 'Hi! Send me a search term and I will find results for you.')
+        bot.reply_to(message, 'Hi! Send me a movies / series name and I will find results for you.')
     else:
         bot.reply_to(message, 'You are not authorized to use this bot.')
 
