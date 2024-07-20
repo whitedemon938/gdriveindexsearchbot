@@ -28,14 +28,14 @@ This Telegram bot allows users to search for data via an API and provides the re
 2. **Create a Virtual Environment**
 
     ```bash
-    python -m venv venv
+    python3 -m venv venv
     source venv/bin/activate  # On Windows use: venv\Scripts\activate
     ```
 
 3. **Install Dependencies**
 
     ```bash
-    pip install -r requirements.txt
+    pip3 install -r requirements.txt
     ```
 
 4. **Edit `config.env` File**
@@ -53,7 +53,7 @@ This Telegram bot allows users to search for data via an API and provides the re
 5. **Run the Bot**
 
     ```bash
-    nohup python bot.py &
+    nohup python3 bot.py &
     ```
 
 ## Usage
