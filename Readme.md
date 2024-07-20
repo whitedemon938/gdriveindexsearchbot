@@ -21,8 +21,8 @@ This Telegram bot allows users to search for data via an API and provides the re
 1. **Clone the Repository**
 
     ```bash
-    git clone https://github.com/your-username/your-repo.git
-    cd your-repo
+    git clone https://github.com/xskdnj/gdriveindexsearchbot.git
+    cd gdriveindexsearchbot
     ```
 
 2. **Create a Virtual Environment**
