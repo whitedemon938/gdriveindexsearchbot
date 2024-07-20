@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from telegraph import Telegraph
 import logging
 import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 # Load the bot token, API URL, public mode, owner ID, and message deletion time from the config.env file
 load_dotenv('config.env')
@@ -117,5 +118,24 @@ def delete_messages(user_message, bot_message):
     except telebot.apihelper.ApiException as e:
         logging.error(f'Error deleting message: {e}')
 
+class RequestHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/plain')
+        self.end_headers()
+        self.wfile.write(b'working')
+
+def run_server(port=6396):
+    server_address = ('', port)
+    httpd = HTTPServer(server_address, RequestHandler)
+    print(f'Starting HTTP server on port {port}...')
+    httpd.serve_forever()
+
 if __name__ == '__main__':
+    # Start the HTTP server in a separate thread
+    server_thread = threading.Thread(target=run_server, args=(6396,))
+    server_thread.daemon = True
+    server_thread.start()
+
+    # Start the Telegram bot
     bot.polling()
