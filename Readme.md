@@ -43,28 +43,23 @@ This Telegram bot allows users to search for data via an API and provides the re
     
 
     ```env
-    API_ID = 
-    API_HASH = 
-    TELEGRAM_BOT_TOKEN = your_telegram_bot_token
-    PUBLIC_MODE = True
-    MESSAGE_DELETION_TIME = 10
-    OWNER_ID = your_telegram_user_id
-    AUTHORIZED_CHATS = comma_separated_list_of_chat_ids
+    TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+    PUBLIC_MODE=True
+    MESSAGE_DELETION_TIME=10
+    OWNER_ID=your_telegram_user_id
+    AUTHORIZED_CHATS=comma_separated_list_of_chat_ids
     ```
 
 5. **Run the Bot**
 
     ```bash
-    python3 bot.py
+    nohup python3 bot.py &
     ```
 
 ## Usage
 
 - **Start Command**: Send `/start` to the bot to receive a welcome message.
 - **Search**: Send any text to the bot to initiate a search. The bot will respond with search results or an error message.
-
-- a sample bot [Gdrive Index Search Bot](https://t.me/gdriveindexsearch1bot).
-
 
 ## Logging
 
