@@ -3,3 +3,4 @@ pyrofork
 tgcrypto
 telegraph
 python-dotenv
+httpx
