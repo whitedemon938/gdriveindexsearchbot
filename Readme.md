@@ -38,13 +38,12 @@ This Telegram bot allows users to search for data via an API and provides the re
     pip install -r requirements.txt
     ```
 
-4. **Create a `.env` File**
+4. **Edit `config.env` File**
 
-    Copy `config.env.example` to `.env` and fill in the required values.
+    
 
     ```env
     TELEGRAM_BOT_TOKEN=your_telegram_bot_token
-    API_URL=https://apix.starktonyrestinpeace.tech/
     PUBLIC_MODE=false
     OWNER_ID=your_telegram_user_id
     AUTHORIZED_CHATS=comma_separated_list_of_chat_ids
