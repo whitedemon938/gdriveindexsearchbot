@@ -74,4 +74,4 @@ Logs are available in the console. They include errors and other important messa
 
 ---
 
-- **Join our Telegram Channel**: For further support and updates, join [Stark Media Hub](https://t.me/starkmediahub).
+- **Join our Telegram Channel**: For further support and updates, [Stark Media Hub](https://t.me/starkmediahub).
