@@ -72,5 +72,6 @@ Logs are available in the console. They include errors and other important messa
 4. Push to the branch (`git push origin feature/YourFeature`).
 5. Create a new Pull Request.
 
+---
 
-
+- **Join our Telegram Channel**: For further support and updates, join [Stark Media Hub](https://t.me/starkmediahub).
